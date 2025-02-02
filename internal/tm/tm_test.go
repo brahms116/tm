@@ -22,7 +22,7 @@ func TestLoadIngCsv(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error creating db: %v", err)
 	}
-  count, err := LoadIngCsv(f, conn)
+  count, err := LoadIngCsv(conn, f)
   if err != nil {
     t.Fatalf("error loading csv: %v", err)
   }

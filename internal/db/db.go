@@ -3,6 +3,8 @@ package db
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -11,7 +13,11 @@ type DB struct {
 }
 
 func New() (*DB, error) {
-	conn, err := pgxpool.New(context.TODO(), "postgres://postgres:password@localhost:5432/tm_dev")
+  dbUrl := os.Getenv("TM_DB_URL")
+  if dbUrl == "" {
+    return nil, fmt.Errorf("TM_DB_URL must be set")
+  }
+	conn, err := pgxpool.New(context.TODO(), dbUrl)
 	if err != nil {
 		return nil, fmt.Errorf("error connecting to db: %w", err)
 	}

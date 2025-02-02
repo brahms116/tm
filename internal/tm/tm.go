@@ -11,7 +11,8 @@ import (
 	"tm/internal/db"
 )
 
-func LoadIngCsv(f io.Reader, conn *db.DB) (int, error) {
+// Loads transactions from ING CSV file into the database. Returns the number of duplicates.
+func LoadIngCsv(conn *db.DB, f io.Reader) (int, error) {
 	params, err := ParseIngCsv(f)
 	if err != nil {
 		return 0, fmt.Errorf("error parsing csv: %w", err)
