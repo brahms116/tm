@@ -32,6 +32,7 @@ func (t *tm) importCsv(ctx context.Context, f io.Reader, fileAdapter CsvFileAdap
 	}
 
 	return contracts.ImportCsvResponse{
+		Total:      len(params),
 		Duplicates: duplicatesCount,
 	}, nil
 }
