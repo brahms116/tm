@@ -43,5 +43,5 @@ func (s *Server) importIngCsv(w http.ResponseWriter, r *http.Request) {
 		handlerutil.BadRequest(w, err.Error())
 		return
 	}
-  handlerutil.Json(w, result)
+	handlerutil.Json(w, result)
 }

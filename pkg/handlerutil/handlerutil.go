@@ -21,12 +21,12 @@ func BadRequest(w http.ResponseWriter, msg string) {
 }
 
 func Ok(w http.ResponseWriter, msg string) {
-  w.WriteHeader(http.StatusOK)
-  w.Write([]byte(msg))
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(msg))
 }
 
 func Json(w http.ResponseWriter, v interface{}) {
-  w.Header().Set("Content-Type", "application/json")
-  w.WriteHeader(http.StatusOK)
-  json.NewEncoder(w).Encode(v)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(v)
 }
