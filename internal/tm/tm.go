@@ -4,10 +4,11 @@ import (
 	"context"
 	"io"
 	"tm/internal/db"
+  "tm/pkg/contracts"
 )
 
 type TM interface {
-	ImportIngCsv(ctx context.Context, f io.Reader) (int, error)
+	ImportIngCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error)
 }
 
 type tm struct {
@@ -17,4 +18,3 @@ type tm struct {
 func New(conn *db.DB) TM {
 	return &tm{conn: conn}
 }
-

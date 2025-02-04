@@ -38,11 +38,10 @@ func (s *Server) importIngCsv(w http.ResponseWriter, r *http.Request) {
 	}
 	defer close()
 
-	duplicates, err := s.tm.ImportIngCsv(r.Context(), f)
+	result, err := s.tm.ImportIngCsv(r.Context(), f)
 	if err != nil {
 		handlerutil.BadRequest(w, err.Error())
 		return
 	}
-
-	handlerutil.Ok(w, "duplicates: "+string(duplicates))
+  handlerutil.Json(w, result)
 }
