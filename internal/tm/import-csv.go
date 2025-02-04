@@ -9,7 +9,7 @@ import (
 )
 
 func (t *tm) ImportIngCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error) {
-	return t.importCsv(ctx, f, NewCsvFileAdapter(IngCsvRowAdapter))
+	return t.importCsv(ctx, f, IngCsvFileAdapter)
 }
 
 // Imports transactions from a CSV file into the database. Returns the number of duplicates.
