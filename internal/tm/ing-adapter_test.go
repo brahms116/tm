@@ -30,7 +30,7 @@ func TestIngFileAdapter(t *testing.T) {
 	}
 	defer f.Close()
 
-	got, err := IngCsvFileAdapter(f)
+	got, err := ParseCsvFile(f)
 	if err != nil {
 		t.Fatalf("error parsing csv: %v", err)
 	}

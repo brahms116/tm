@@ -7,9 +7,15 @@ import (
 	"tm/internal/data"
 )
 
-var IngCsvFileAdapter = NewCsvFileAdapter(IngCsvRowAdapter)
+type IngFileAdapter struct{}
 
-func IngCsvRowAdapter(row []string) (data.AddTransactionParams, error) {
+var _ CsvFileAdapter = IngFileAdapter{}
+
+func (IngFileAdapter) IsHeader(row []string) bool {
+	return row[0] == "Date" && row[1] == "Description" && row[2] == "Credit" && row[3] == "Debit"
+}
+
+func (IngFileAdapter) ParseRow(row []string) (data.AddTransactionParams, error) {
 	dateStr := row[0]
 	description := row[1]
 	creditStr := row[2]

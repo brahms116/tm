@@ -8,7 +8,7 @@ import (
 )
 
 type TM interface {
-	ImportIngCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error)
+	ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error)
 }
 
 type tm struct {

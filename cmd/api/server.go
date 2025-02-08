@@ -18,7 +18,7 @@ func New(tm tm.TM) *Server {
 func (s *Server) Start() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
-	mux.HandleFunc("POST /import/ing", s.importIngCsv)
+	mux.HandleFunc("POST /import", s.importIngCsv)
 
 	err := http.ListenAndServe(":8081", mux)
 	if err != nil {
@@ -38,7 +38,7 @@ func (s *Server) importIngCsv(w http.ResponseWriter, r *http.Request) {
 	}
 	defer close()
 
-	result, err := s.tm.ImportIngCsv(r.Context(), f)
+	result, err := s.tm.ImportCsv(r.Context(), f)
 	if err != nil {
 		handlerutil.BadRequest(w, err.Error())
 		return
