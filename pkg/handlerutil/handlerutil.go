@@ -20,6 +20,11 @@ func BadRequest(w http.ResponseWriter, msg string) {
 	w.Write([]byte(msg))
 }
 
+func Unauthorized(w http.ResponseWriter, msg string) {
+  w.WriteHeader(http.StatusUnauthorized)
+  w.Write([]byte(msg))
+}
+
 func Ok(w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(msg))
