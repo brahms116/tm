@@ -7,36 +7,49 @@ import (
 	"tm/internal/data"
 )
 
-func BendigoCsvRowAdapter(row []string) (data.AddTransactionParams, error) {
-  dateStr := row[0]
-  description := row[1]
-  creditStr := row[2]
-  debitStr := row[3]
+type BendigoCsvRowAdapter struct{}
 
-  var amountStr string
-  if creditStr != "" {
-    amountStr = creditStr
-  } else {
-    amountStr = debitStr
-  }
+var _ CsvFileAdapter = BendigoCsvRowAdapter{}
 
-  id := dateStr + description
+func (a BendigoCsvRowAdapter) Parse(rows [][]string) ([]data.AddTransactionParams, error) {
+	addParams := []data.AddTransactionParams{}
+	for _, row := range rows {
+		addParam, err := a.parseRow(row)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing Bendigo row: %v : %w", row, err)
+		}
+		addParams = append(addParams, addParam)
+	}
+	return addParams, nil
+}
 
-  time, err := time.Parse("02/01/2006", dateStr)
-  if err != nil {
-    return data.AddTransactionParams{}, fmt.Errorf("error parsing date: %w", err)
-  }
+// Parses a row like "31/01/2024","500.00","Description 1"
+func (BendigoCsvRowAdapter) parseRow(row []string) (data.AddTransactionParams, error) {
+	if len(row) != 3 {
+		return data.AddTransactionParams{}, fmt.Errorf("expected 3 columns, got %d", len(row))
+	}
 
-  amount, err := strconv.ParseFloat(amountStr, 64)
-  if err != nil {
-    return data.AddTransactionParams{}, fmt.Errorf("error parsing amount: %w", err)
-  }
-  amountCents := int32(amount * 100)
+	dateStr := row[0]
+	amountStr := row[1]
+	description := row[2]
 
-  return data.AddTransactionParams{
-    ID:          id,
-    Date:        time,
-    Description: description,
-    AmountCents: amountCents,
-  }, nil
+	id := dateStr + description
+
+	time, err := time.Parse("02/01/2006", dateStr)
+	if err != nil {
+		return data.AddTransactionParams{}, fmt.Errorf("error parsing date: %w", err)
+	}
+
+	amount, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+		return data.AddTransactionParams{}, fmt.Errorf("error parsing amount: %w", err)
+	}
+	amountCents := int32(amount * 100)
+
+	return data.AddTransactionParams{
+		ID:          id,
+		Date:        time,
+		Description: description,
+		AmountCents: amountCents,
+	}, nil
 }

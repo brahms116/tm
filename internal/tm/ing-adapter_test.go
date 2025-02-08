@@ -1,11 +1,11 @@
 package tm
 
 import (
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
 	"tm/internal/data"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIngFileAdapter(t *testing.T) {
