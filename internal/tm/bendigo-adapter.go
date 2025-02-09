@@ -7,14 +7,10 @@ import (
 	"tm/internal/data"
 )
 
-type BendigoCsvRowAdapter struct{}
-
-var _ CsvFileAdapter = BendigoCsvRowAdapter{}
-
-func (a BendigoCsvRowAdapter) Parse(rows [][]string) ([]data.AddTransactionParams, error) {
+func bendigoFileAdapter(rows [][]string) ([]data.AddTransactionParams, error) {
 	addParams := []data.AddTransactionParams{}
 	for _, row := range rows {
-		addParam, err := a.parseRow(row)
+		addParam, err := bendigoRowAdapter(row)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing Bendigo row: %v : %w", row, err)
 		}
@@ -24,7 +20,7 @@ func (a BendigoCsvRowAdapter) Parse(rows [][]string) ([]data.AddTransactionParam
 }
 
 // Parses a row like "31/01/2024","500.00","Description 1"
-func (BendigoCsvRowAdapter) parseRow(row []string) (data.AddTransactionParams, error) {
+func bendigoRowAdapter(row []string) (data.AddTransactionParams, error) {
 	if len(row) != 3 {
 		return data.AddTransactionParams{}, fmt.Errorf("expected 3 columns, got %d", len(row))
 	}

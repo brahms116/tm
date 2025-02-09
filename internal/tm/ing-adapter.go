@@ -7,11 +7,7 @@ import (
 	"tm/internal/data"
 )
 
-type IngFileAdapter struct{}
-
-var _ CsvFileAdapter = IngFileAdapter{}
-
-func (a IngFileAdapter) Parse(rows [][]string) ([]data.AddTransactionParams, error) {
+func ingFileAdapter(rows [][]string) ([]data.AddTransactionParams, error) {
 	header := rows[0]
 	if len(header) != 5 {
 		return nil, fmt.Errorf("expected 5 columns, got %d", len(header))
@@ -27,7 +23,7 @@ func (a IngFileAdapter) Parse(rows [][]string) ([]data.AddTransactionParams, err
 	rows = rows[1:] // skip header
 	addParams := []data.AddTransactionParams{}
 	for _, row := range rows {
-		addParam, err := a.parseRow(row)
+		addParam, err := ingRowAdapter(row)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing Ing row: %v : %w", row, err)
 		}
@@ -36,8 +32,7 @@ func (a IngFileAdapter) Parse(rows [][]string) ([]data.AddTransactionParams, err
 	return addParams, nil
 }
 
-func (IngFileAdapter) parseRow(row []string) (data.AddTransactionParams, error) {
-
+func ingRowAdapter(row []string) (data.AddTransactionParams, error) {
 	dateStr := row[0]
 	description := row[1]
 	creditStr := row[2]

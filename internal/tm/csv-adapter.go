@@ -7,13 +7,11 @@ import (
 	"tm/internal/data"
 )
 
-type CsvFileAdapter interface {
-	Parse(rows [][]string) ([]data.AddTransactionParams, error)
-}
+type CsvFileAdapter func (rows [][]string) ([]data.AddTransactionParams, error)
 
 var adapters = []CsvFileAdapter{
-	IngFileAdapter{},
-	BendigoCsvRowAdapter{},
+	ingFileAdapter,
+	bendigoFileAdapter,
 }
 
 func ParseCsvFile(f io.Reader) ([]data.AddTransactionParams, error) {
@@ -25,7 +23,7 @@ func ParseCsvFile(f io.Reader) ([]data.AddTransactionParams, error) {
 	errors := []error{}
 
 	for _, adapter := range adapters {
-		params, err := adapter.Parse(rows)
+		params, err := adapter(rows)
 		if err != nil {
 			errors = append(errors, err)
 			continue
