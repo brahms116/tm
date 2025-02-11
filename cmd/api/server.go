@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 	"tm/internal/cfg"
 	"tm/internal/tm"
 	"tm/pkg/handlerutil"
@@ -15,7 +16,7 @@ type Server struct {
 }
 
 func New(cfg cfg.Cfg, tm tm.TM) *Server {
-  return &Server{tm: tm, cfg: cfg}
+	return &Server{tm: tm, cfg: cfg}
 }
 
 func (s *Server) Start() error {
@@ -32,6 +33,21 @@ func (s *Server) Start() error {
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	handlerutil.Ok(w, "OK")
+}
+
+// GET /report?week=2024-01-01
+func (s *Server) report(w http.ResponseWriter, r *http.Request) {
+	dateWeek, ok := handlerutil.ReadOptionalQueryDate(w, r, "week", time.Now())
+	if !ok {
+		return
+	}
+
+	result, err := s.tm.Report(r.Context(), dateWeek)
+	if err != nil {
+		handlerutil.BadRequest(w, err.Error())
+		return
+	}
+	handlerutil.Json(w, result)
 }
 
 func (s *Server) importIngCsv(w http.ResponseWriter, r *http.Request) {

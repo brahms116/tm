@@ -38,3 +38,41 @@ func (q *Queries) AddTransaction(ctx context.Context, db DBTX, arg AddTransactio
 	}
 	return result.RowsAffected(), nil
 }
+
+const listTransactions = `-- name: ListTransactions :many
+select id, date, description, amount_cents, category_id
+from tm_transaction
+where date >= $1 and date <= $2
+order by date desc
+`
+
+type ListTransactionsParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date2"`
+}
+
+func (q *Queries) ListTransactions(ctx context.Context, db DBTX, arg ListTransactionsParams) ([]TmTransaction, error) {
+	rows, err := db.Query(ctx, listTransactions, arg.Date, arg.Date_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TmTransaction
+	for rows.Next() {
+		var i TmTransaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Description,
+			&i.AmountCents,
+			&i.CategoryID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
