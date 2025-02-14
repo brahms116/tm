@@ -2,6 +2,7 @@ package handlerutil
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -21,19 +22,20 @@ func ReadOptionalQueryInt(w http.ResponseWriter, r *http.Request, key string, de
 	return i, true
 }
 
-func ReadOptionalQueryDate(
+func ReadQueryTime(
 	w http.ResponseWriter,
 	r *http.Request,
 	key string,
-	defaultTime time.Time,
+	format string,
 ) (time.Time, bool) {
 	str := r.URL.Query().Get(key)
 	if str == "" {
-		return defaultTime, true
+		BadRequest(w, fmt.Sprintf("missing %s query parameter", key))
+		return time.Time{}, false
 	}
-	t, err := time.Parse("2006-01-02", str)
+	t, err := time.Parse(format, str)
 	if err != nil {
-		BadRequest(w, "invalid date format")
+		BadRequest(w, fmt.Sprintf("invalid %s query parameter, expected format: %s", key, format))
 		return time.Time{}, false
 	}
 	return t, true

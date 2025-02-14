@@ -35,14 +35,14 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	handlerutil.Ok(w, "OK")
 }
 
-// GET /report?week=2024-01-01
+// GET /report?month=2021-01
 func (s *Server) report(w http.ResponseWriter, r *http.Request) {
-	dateWeek, ok := handlerutil.ReadOptionalQueryDate(w, r, "week", time.Now())
+	dateMonth, ok := handlerutil.ReadQueryTime(w, r, "month", "2006-01")
 	if !ok {
 		return
 	}
 
-	result, err := s.tm.Report(r.Context(), dateWeek)
+	result, err := s.tm.Report(r.Context(), dateMonth)
 	if err != nil {
 		handlerutil.BadRequest(w, err.Error())
 		return

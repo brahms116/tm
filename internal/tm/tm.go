@@ -10,7 +10,7 @@ import (
 
 type TM interface {
 	ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error)
-  Report(ctx context.Context, dateWeek time.Time, numWeeks int) (contracts.ReportResponse, error)
+  Report(ctx context.Context, dateMonth time.Time) (contracts.MonthReport, error)
 }
 
 type tm struct {

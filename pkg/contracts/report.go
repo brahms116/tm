@@ -1,27 +1,32 @@
 package contracts
 
-import "time"
+import (
+	"time"
+	"tm/internal/data"
+)
 
-type ReportResponse struct {
-	Total TotalSpendings    `json:"total"`
-	Net   int               `json:"net"`
-	Weeks []WeeklySpendings `json:"weeks"`
+type MonthReport struct {
+	Summary           Summary `json:"summary"`
+	SummaryComparison Summary `json:"summaryComparison"`
+
+	Periods []MonthPeriodReport `json:"periods"`
 }
 
-type Spending struct {
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	AmountCents int       `json:"amountCents"`
+type Summary struct {
+	Spending      int `json:"spending"`
+	SmallSpending int `json:"smallSpending"`
+	Earning       int `json:"earning"`
+	Net           int `json:"net"`
 }
 
-type TotalSpendings struct {
-	Total          int `json:"total"`
-	SmallSpendings int `json:"smallSpendings"`
+type MonthPeriodSummary struct {
+	SpendingPerDay      int `json:"spendingPerDay"`
+	SmallSpendingPerDay int `json:"smallSpendingPerDay"`
 }
 
-type WeeklySpendings struct {
-	WeekStart time.Time      `json:"weekStart"`
-	Total     TotalSpendings `json:"total"`
-
-	Spendings []Spending `json:"spendings"`
+type MonthPeriodReport struct {
+	StartDate   time.Time            `json:"startDate"`
+	EndDate     time.Time            `json:"endDate"`
+	Summary     MonthPeriodSummary   `json:"summary"`
+	SmallSpends []data.TmTransaction `json:"smallSpends"`
 }
