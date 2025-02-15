@@ -9,8 +9,7 @@ import (
 	"tm/pkg/contracts"
 )
 
-const tmpl = `
----- Report for {{formatMonth .Month}} ----
+const tmpl = `---- Report for {{formatMonth .Month}} ----
 
 -- Summary:
 Total spending: {{formatCents .Summary.Spending}} ({{formatCents .SummaryComparison.Spending}})
@@ -22,7 +21,7 @@ Net: {{formatCents .Summary.Net}} ({{formatCents .SummaryComparison.Net}})
 
 -- {{formatPeriodDate .EndDate}} ({{formatCents .Summary.SmallSpendingPerDay}} / {{formatCents .Summary.SpendingPerDay}}):
 
-{{- range .SmallSpends}}
+{{range .SmallSpends}}
 {{formatTransaction .}}
 {{- end}}
 {{- end}}

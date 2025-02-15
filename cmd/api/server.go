@@ -35,7 +35,7 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	handlerutil.Ok(w, "OK")
 }
 
-// GET /report?month=2021-01?format=text
+// GET /report?month=2021-01&format=text
 func (s *Server) report(w http.ResponseWriter, r *http.Request) {
 	dateMonth, ok := handlerutil.ReadQueryTime(w, r, "month", "2006-01")
 	if !ok {

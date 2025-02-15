@@ -8,7 +8,7 @@ import (
 	"tm/pkg/contracts"
 )
 
-const SMALL_SPEND_THRESHOLD = -10000
+const SMALL_SPEND_THRESHOLD = -15000
 
 func (t tm) ReportText(ctx context.Context, dateMonth time.Time) (string, error) {
 	report, err := t.Report(ctx, dateMonth)
@@ -134,9 +134,6 @@ func nextMonthPeriodEnd(monthStart, currPeriodEnd time.Time) time.Time {
 
 func monthlyPeriodReports(trans []data.TmTransaction, monthStart, periodEnd time.Time) []contracts.MonthPeriodReport {
 	nextPeriodEnd := nextMonthPeriodEnd(monthStart, periodEnd)
-
-  fmt.Println("periodEnd", periodEnd)
-  fmt.Println("nextPeriodEnd", nextPeriodEnd)
 
 	currTs, nextTs := splitTransactionsByTime(trans, nextPeriodEnd)
 	currSummary := monthPeriodSummary(currTs, periodEnd.Sub(nextPeriodEnd))
