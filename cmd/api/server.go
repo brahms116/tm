@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 	"tm/internal/cfg"
 	"tm/internal/tm"
 	"tm/pkg/handlerutil"
@@ -23,6 +22,7 @@ func (s *Server) Start() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
 	mux.Handle("POST /import", s.authMiddleware(http.HandlerFunc(s.importIngCsv)))
+  mux.Handle("GET /report", s.authMiddleware(http.HandlerFunc(s.report)))
 
 	err := http.ListenAndServe(":8081", mux)
 	if err != nil {
