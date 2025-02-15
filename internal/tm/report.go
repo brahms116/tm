@@ -10,6 +10,40 @@ import (
 
 const SMALL_SPEND_THRESHOLD = -10000
 
+func (t tm) ReportText(ctx context.Context, dateMonth time.Time) (string, error) {
+	report, err := t.Report(ctx, dateMonth)
+	if err != nil {
+		return "", fmt.Errorf("error generating report: %w", err)
+	}
+	return textReport(report), nil
+}
+
+func (t *tm) Report(ctx context.Context, dateMonth time.Time) (contracts.MonthReport, error) {
+	currStart, currEnd := monthSpan(dateMonth)
+	params := data.ListTransactionsParams{
+		Date:   currStart,
+		Date_2: currEnd,
+	}
+
+	curr, err := data.New().ListTransactions(ctx, t.conn, params)
+	if err != nil {
+		return contracts.MonthReport{}, fmt.Errorf("error listing transactions: %w", err)
+	}
+
+	prevStart, prevEnd := monthSpan(dateMonth.AddDate(0, -1, 0))
+	params = data.ListTransactionsParams{
+		Date:   prevStart,
+		Date_2: prevEnd,
+	}
+	prev, err := data.New().ListTransactions(ctx, t.conn, params)
+	if err != nil {
+		return contracts.MonthReport{}, fmt.Errorf("error listing transactions: %w", err)
+	}
+
+	report := generateMonthReport(curr, prev, currStart, currEnd)
+	return report, nil
+}
+
 func smallSpends(transactions []data.TmTransaction) []data.TmTransaction {
 	smallSpends := []data.TmTransaction{}
 	for _, transaction := range transactions {
@@ -65,34 +99,7 @@ func monthSpan(dateMonth time.Time) (time.Time, time.Time) {
 	end := start.AddDate(0, 1, 0)
 	return start, end
 }
-
-func (t *tm) Report(ctx context.Context, dateMonth time.Time) (contracts.MonthReport, error) {
-	currStart, currEnd := monthSpan(dateMonth)
-	params := data.ListTransactionsParams{
-		Date:   currStart,
-		Date_2: currEnd,
-	}
-
-	curr, err := data.New().ListTransactions(ctx, t.conn, params)
-	if err != nil {
-		return contracts.MonthReport{}, fmt.Errorf("error listing transactions: %w", err)
-	}
-
-	prevStart, prevEnd := monthSpan(dateMonth.AddDate(0, -1, 0))
-	params = data.ListTransactionsParams{
-		Date:   prevStart,
-		Date_2: prevEnd,
-	}
-	prev, err := data.New().ListTransactions(ctx, t.conn, params)
-	if err != nil {
-		return contracts.MonthReport{}, fmt.Errorf("error listing transactions: %w", err)
-	}
-
-	report := generateMonthReport(curr, prev, currStart, currEnd)
-	return report, nil
-}
-
-func generateMonthReport(curr, prev []data.TmTransaction, start, end time.Time) contracts.MonthReport {
+func generateMonthReport(curr, prev []data.TmTransaction, monthStart, monthEnd time.Time) contracts.MonthReport {
 	currSummary := summary(curr)
 	prevSummary := summary(prev)
 	diffSummary := contracts.Summary{
@@ -102,47 +109,49 @@ func generateMonthReport(curr, prev []data.TmTransaction, start, end time.Time) 
 		Net:           currSummary.Net - prevSummary.Net,
 	}
 
-	periods := monthlyPeriodReports(curr, start, end)
+	periods := monthlyPeriodReports(curr, monthStart, monthEnd)
 	return contracts.MonthReport{
+		Month:             monthStart,
 		Summary:           currSummary,
 		SummaryComparison: diffSummary,
 		Periods:           periods,
 	}
 }
 
-func nextMonthPeriodEnd(start, end time.Time) time.Time {
+func nextMonthPeriodEnd(monthStart, currPeriodEnd time.Time) time.Time {
 	var prevMonday time.Time
-	if end.Weekday() == 0 {
-		prevMonday = end.AddDate(0, 0, -7)
+	if currPeriodEnd.Weekday() == 0 {
+		prevMonday = currPeriodEnd.AddDate(0, 0, -7)
 	} else {
-		prevMonday = end.AddDate(0, 0, -int(end.Weekday()))
+		prevMonday = currPeriodEnd.AddDate(0, 0, -int(currPeriodEnd.Weekday()))
 	}
 
-	if prevMonday.After(start) {
+	if prevMonday.After(monthStart) {
 		return prevMonday
 	}
-	return start
+	return monthStart
 }
 
-func monthlyPeriodReports(trans []data.TmTransaction, start, end time.Time) []contracts.MonthPeriodReport {
-	periodStart := nextMonthPeriodEnd(start, end)
-	if start.After(periodStart) || start.Equal(periodStart) {
-		return nil
-	}
-	fmt.Println("periodStart", periodStart)
-	fmt.Println("periodEnd", end)
+func monthlyPeriodReports(trans []data.TmTransaction, monthStart, periodEnd time.Time) []contracts.MonthPeriodReport {
+	nextPeriodEnd := nextMonthPeriodEnd(monthStart, periodEnd)
 
-	curr, next := splitTransactionsByTime(trans, periodStart)
-	currSummary := monthPeriodSummary(curr, end.Sub(periodStart))
-	currSmallSpends := smallSpends(curr)
+  fmt.Println("periodEnd", periodEnd)
+  fmt.Println("nextPeriodEnd", nextPeriodEnd)
+
+	currTs, nextTs := splitTransactionsByTime(trans, nextPeriodEnd)
+	currSummary := monthPeriodSummary(currTs, periodEnd.Sub(nextPeriodEnd))
+	currSmallSpends := smallSpends(currTs)
 	currReport := contracts.MonthPeriodReport{
-		StartDate:   periodStart,
-		EndDate:     end,
+		StartDate:   nextPeriodEnd,
+		EndDate:     periodEnd,
 		Summary:     currSummary,
 		SmallSpends: currSmallSpends,
 	}
 
-	return append([]contracts.MonthPeriodReport{currReport}, monthlyPeriodReports(next, start, periodStart)...)
+	if nextPeriodEnd.After(monthStart) {
+		return append([]contracts.MonthPeriodReport{currReport}, monthlyPeriodReports(nextTs, monthStart, nextPeriodEnd)...)
+	}
+	return []contracts.MonthPeriodReport{currReport}
 }
 
 func splitTransactionsByTime(transactions []data.TmTransaction, at time.Time) ([]data.TmTransaction, []data.TmTransaction) {

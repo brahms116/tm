@@ -11,6 +11,7 @@ import (
 type TM interface {
 	ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error)
   Report(ctx context.Context, dateMonth time.Time) (contracts.MonthReport, error)
+  ReportText(ctx context.Context, dateMonth time.Time) (string, error)
 }
 
 type tm struct {

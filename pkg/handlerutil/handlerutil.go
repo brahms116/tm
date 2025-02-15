@@ -22,6 +22,14 @@ func ReadOptionalQueryInt(w http.ResponseWriter, r *http.Request, key string, de
 	return i, true
 }
 
+func ReadOptionalQueryString(r *http.Request, key string, defaultValue string) string {
+	str := r.URL.Query().Get(key)
+	if str == "" {
+		return defaultValue
+	}
+	return str
+}
+
 func ReadQueryTime(
 	w http.ResponseWriter,
 	r *http.Request,
@@ -69,4 +77,10 @@ func Json(w http.ResponseWriter, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(v)
+}
+
+func Text(w http.ResponseWriter, v string) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(v))
 }

@@ -6,8 +6,9 @@ import (
 )
 
 type MonthReport struct {
-	Summary           Summary `json:"summary"`
-	SummaryComparison Summary `json:"summaryComparison"`
+	Month             time.Time `json:"month"`
+	Summary           Summary   `json:"summary"`
+	SummaryComparison Summary   `json:"summaryComparison"`
 
 	Periods []MonthPeriodReport `json:"periods"`
 }
