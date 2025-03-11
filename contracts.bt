@@ -1,0 +1,28 @@
+prod Transaction {
+  id Str,
+  date Str,
+  description Str,
+  amountCents Int,
+  category Str?,
+}
+
+prod TimelineResponseItem {
+  month Str,
+  Summary,
+}
+
+prod TimelineResponse {
+  items []TimelineResponseItem,
+}
+
+prod ReportResponse {
+  Summary,
+  topSpendings []Transaction,
+  topEarnings []Transaction,
+}
+
+prod Summary {
+  spendingCents Int,
+  earningCents Int,
+  netCents Int,
+}

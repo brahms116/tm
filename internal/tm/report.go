@@ -10,7 +10,7 @@ import (
 
 const SMALL_SPEND_THRESHOLD = -15000
 
-func (t tm) ReportText(ctx context.Context, dateMonth time.Time) (string, error) {
+func (t *tm) ReportText(ctx context.Context, dateMonth time.Time) (string, error) {
 	report, err := t.Report(ctx, dateMonth)
 	if err != nil {
 		return "", fmt.Errorf("error generating report: %w", err)
@@ -82,11 +82,11 @@ func sumAmounts(transactions []data.TmTransaction) int {
 	return sum
 }
 
-func summary(transactions []data.TmTransaction) contracts.Summary {
+func summary(transactions []data.TmTransaction) contracts.SummaryOld {
 	spends := spends(transactions)
 	smallSpends := smallSpends(transactions)
 	earns := earns(transactions)
-	return contracts.Summary{
+	return contracts.SummaryOld{
 		Spending:      -1 * sumAmounts(spends),
 		SmallSpending: -1 * sumAmounts(smallSpends),
 		Earning:       sumAmounts(earns),
@@ -102,7 +102,7 @@ func monthSpan(dateMonth time.Time) (time.Time, time.Time) {
 func generateMonthReport(curr, prev []data.TmTransaction, monthStart, monthEnd time.Time) contracts.MonthReport {
 	currSummary := summary(curr)
 	prevSummary := summary(prev)
-	diffSummary := contracts.Summary{
+	diffSummary := contracts.SummaryOld{
 		Spending:      currSummary.Spending - prevSummary.Spending,
 		SmallSpending: currSummary.SmallSpending - prevSummary.SmallSpending,
 		Earning:       currSummary.Earning - prevSummary.Earning,

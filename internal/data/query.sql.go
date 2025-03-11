@@ -8,6 +8,8 @@ package data
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addTransaction = `-- name: AddTransaction :execrows
@@ -67,6 +69,212 @@ func (q *Queries) ListTransactions(ctx context.Context, db DBTX, arg ListTransac
 			&i.AmountCents,
 			&i.CategoryID,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const summariseTransactions = `-- name: SummariseTransactions :one
+select
+  sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
+  sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
+from tm_transaction
+where date >= $1 and date < $2
+`
+
+type SummariseTransactionsParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date2"`
+}
+
+type SummariseTransactionsRow struct {
+	Earnings  int64 `json:"earnings"`
+	Spendings int64 `json:"spendings"`
+}
+
+func (q *Queries) SummariseTransactions(ctx context.Context, db DBTX, arg SummariseTransactionsParams) (SummariseTransactionsRow, error) {
+	row := db.QueryRow(ctx, summariseTransactions, arg.Date, arg.Date_2)
+	var i SummariseTransactionsRow
+	err := row.Scan(&i.Earnings, &i.Spendings)
+	return i, err
+}
+
+const summariseTransactionsU100 = `-- name: SummariseTransactionsU100 :one
+select
+  sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
+  sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
+from tm_transaction
+where date >= $1 and date < $2 and amount_cents >= -10000
+`
+
+type SummariseTransactionsU100Params struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date2"`
+}
+
+type SummariseTransactionsU100Row struct {
+	Earnings  int64 `json:"earnings"`
+	Spendings int64 `json:"spendings"`
+}
+
+func (q *Queries) SummariseTransactionsU100(ctx context.Context, db DBTX, arg SummariseTransactionsU100Params) (SummariseTransactionsU100Row, error) {
+	row := db.QueryRow(ctx, summariseTransactionsU100, arg.Date, arg.Date_2)
+	var i SummariseTransactionsU100Row
+	err := row.Scan(&i.Earnings, &i.Spendings)
+	return i, err
+}
+
+const topEarnings = `-- name: TopEarnings :many
+select id, date, description, amount_cents, category_id
+from tm_transaction
+where date >= $1 and date < $2 and amount_cents > 0
+order by amount_cents desc
+`
+
+type TopEarningsParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date2"`
+}
+
+func (q *Queries) TopEarnings(ctx context.Context, db DBTX, arg TopEarningsParams) ([]TmTransaction, error) {
+	rows, err := db.Query(ctx, topEarnings, arg.Date, arg.Date_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TmTransaction
+	for rows.Next() {
+		var i TmTransaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Description,
+			&i.AmountCents,
+			&i.CategoryID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const topSpendings = `-- name: TopSpendings :many
+select id, date, description, amount_cents, category_id
+from tm_transaction
+where date >= $1 and date < $2 and amount_cents < 0
+order by amount_cents asc
+`
+
+type TopSpendingsParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date2"`
+}
+
+func (q *Queries) TopSpendings(ctx context.Context, db DBTX, arg TopSpendingsParams) ([]TmTransaction, error) {
+	rows, err := db.Query(ctx, topSpendings, arg.Date, arg.Date_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TmTransaction
+	for rows.Next() {
+		var i TmTransaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Description,
+			&i.AmountCents,
+			&i.CategoryID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const topSpendingsU100 = `-- name: TopSpendingsU100 :many
+select id, date, description, amount_cents, category_id
+from tm_transaction
+where date >= $1 and date < $2 and amount_cents < 0 and amount_cents >= -10000
+order by amount_cents asc
+`
+
+type TopSpendingsU100Params struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date2"`
+}
+
+func (q *Queries) TopSpendingsU100(ctx context.Context, db DBTX, arg TopSpendingsU100Params) ([]TmTransaction, error) {
+	rows, err := db.Query(ctx, topSpendingsU100, arg.Date, arg.Date_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TmTransaction
+	for rows.Next() {
+		var i TmTransaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.Date,
+			&i.Description,
+			&i.AmountCents,
+			&i.CategoryID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const yearlyTimeline = `-- name: YearlyTimeline :many
+select
+  date_trunc('month', date) as month,
+  sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
+  sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
+from tm_transaction
+where date >= $1 and date < $2
+group by month
+order by month asc
+`
+
+type YearlyTimelineParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date2"`
+}
+
+type YearlyTimelineRow struct {
+	Month     pgtype.Interval `json:"month"`
+	Earnings  int64           `json:"earnings"`
+	Spendings int64           `json:"spendings"`
+}
+
+func (q *Queries) YearlyTimeline(ctx context.Context, db DBTX, arg YearlyTimelineParams) ([]YearlyTimelineRow, error) {
+	rows, err := db.Query(ctx, yearlyTimeline, arg.Date, arg.Date_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []YearlyTimelineRow
+	for rows.Next() {
+		var i YearlyTimelineRow
+		if err := rows.Scan(&i.Month, &i.Earnings, &i.Spendings); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

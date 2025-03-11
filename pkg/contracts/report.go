@@ -7,13 +7,13 @@ import (
 
 type MonthReport struct {
 	Month             time.Time `json:"month"`
-	Summary           Summary   `json:"summary"`
-	SummaryComparison Summary   `json:"summaryComparison"`
+	Summary           SummaryOld   `json:"summary"`
+	SummaryComparison SummaryOld   `json:"summaryComparison"`
 
 	Periods []MonthPeriodReport `json:"periods"`
 }
 
-type Summary struct {
+type SummaryOld struct {
 	Spending      int `json:"spending"`
 	SmallSpending int `json:"smallSpending"`
 	Earning       int `json:"earning"`
