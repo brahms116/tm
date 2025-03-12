@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -48,11 +49,13 @@ func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
 	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid start date")
+    return
 	}
 
 	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid end date")
+    return
 	}
 
 	res, err := s.tm.ReportTimeline(
@@ -60,6 +63,12 @@ func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
 		start,
 		end,
 	)
+
+  if err != nil {
+    log.Println(err.Error())
+    handlerutil.ServerError(w)
+    return
+  }
 
 	handlerutil.Json(w, res)
 	return
@@ -75,11 +84,13 @@ func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
 	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid start date")
+    return
 	}
 
 	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid end date")
+    return
 	}
 
 	res, err := s.tm.ReportPeriod(
@@ -88,6 +99,12 @@ func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
 		end,
 		reqBody.U100,
 	)
+
+  if err != nil {
+    log.Println(err.Error())
+    handlerutil.ServerError(w)
+    return
+  }
 
 	handlerutil.Json(w, res)
 	return

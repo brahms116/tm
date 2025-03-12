@@ -63,6 +63,11 @@ func BadRequest(w http.ResponseWriter, msg string) {
 	w.Write([]byte(msg))
 }
 
+func ServerError(w http.ResponseWriter) {
+  w.WriteHeader(http.StatusInternalServerError)
+  w.Write([]byte("Internal server error"))
+}
+
 func Unauthorized(w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusUnauthorized)
 	w.Write([]byte(msg))

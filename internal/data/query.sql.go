@@ -249,7 +249,6 @@ select
 from tm_transaction
 where date >= $1 and date < $2
 group by month
-having month is not null
 order by month asc
 `
 
