@@ -84,3 +84,14 @@ func Text(w http.ResponseWriter, v string) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(v))
 }
+
+func BodyJson[T any](w http.ResponseWriter, r *http.Request) (T, bool) {
+	var t T
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&t)
+  if err != nil {
+    BadRequest(w, "Malformed json")
+    return t, false
+  }
+	return t, true
+}

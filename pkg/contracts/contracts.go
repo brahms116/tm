@@ -7,6 +7,15 @@ type Transaction struct {
 	AmountCents int     `json:"amountCents"`
 	Category    *string `json:"category,omitEmpty"`
 }
+type TimelineRequest struct {
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
+}
+type ReportRequest struct {
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
+	U100      bool   `json:"u100"`
+}
 type TimelineResponseItem struct {
 	Month   string  `json:"month"`
 	Summary Summary `json:"summary"`

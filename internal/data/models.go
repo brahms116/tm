@@ -9,24 +9,24 @@ import (
 )
 
 type TmTransaction struct {
-	ID          string    `json:"id"`
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	AmountCents int32     `json:"amountCents"`
-	CategoryID  *string   `json:"categoryId"`
+	ID          string
+	Date        time.Time
+	Description string
+	AmountCents int32
+	CategoryID  *string
 }
 
 type TmTransactionCategory struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID          string
+	Name        string
+	Description string
 }
 
 type TmTransactionClassifyingRule struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CategoryID  string `json:"categoryId"`
-	RuleType    string `json:"ruleType"`
-	Pattern     string `json:"pattern"`
+	ID          string
+	Name        string
+	Description string
+	CategoryID  string
+	RuleType    string
+	Pattern     string
 }

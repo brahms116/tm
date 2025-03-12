@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 	"tm/internal/cfg"
 	"tm/internal/tm"
+	"tm/pkg/contracts"
 	"tm/pkg/handlerutil"
 )
 
@@ -23,6 +25,8 @@ func (s *Server) Start() error {
 	mux.HandleFunc("GET /health", s.health)
 	mux.Handle("POST /import", s.authMiddleware(http.HandlerFunc(s.importIngCsv)))
 	mux.Handle("GET /report", s.authMiddleware(http.HandlerFunc(s.report)))
+	mux.Handle("POST /report-period", s.authMiddleware(http.HandlerFunc(s.reportPeriod)))
+	mux.Handle("POST /report-timeline", s.authMiddleware(http.HandlerFunc(s.reportTimeline)))
 
 	err := http.ListenAndServe(":8081", mux)
 	if err != nil {
@@ -33,6 +37,60 @@ func (s *Server) Start() error {
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	handlerutil.Ok(w, "OK")
+}
+
+func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
+	reqBody, ok := handlerutil.BodyJson[contracts.TimelineRequest](w, r)
+	if !ok {
+		return
+	}
+
+	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
+	if err != nil {
+		handlerutil.BadRequest(w, "Invalid start date")
+	}
+
+	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
+	if err != nil {
+		handlerutil.BadRequest(w, "Invalid end date")
+	}
+
+	res, err := s.tm.ReportTimeline(
+		r.Context(),
+		start,
+		end,
+	)
+
+	handlerutil.Json(w, res)
+	return
+
+}
+
+func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
+	reqBody, ok := handlerutil.BodyJson[contracts.ReportRequest](w, r)
+	if !ok {
+		return
+	}
+
+	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
+	if err != nil {
+		handlerutil.BadRequest(w, "Invalid start date")
+	}
+
+	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
+	if err != nil {
+		handlerutil.BadRequest(w, "Invalid end date")
+	}
+
+	res, err := s.tm.ReportPeriod(
+		r.Context(),
+		start,
+		end,
+		reqBody.U100,
+	)
+
+	handlerutil.Json(w, res)
+	return
 }
 
 // GET /report?month=2021-01&format=text

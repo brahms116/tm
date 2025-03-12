@@ -6,6 +6,17 @@ prod Transaction {
   category Str?,
 }
 
+prod TimelineRequest {
+  startDate Str,
+  endDate Str,
+}
+
+prod ReportRequest {
+  startDate Str,
+  endDate Str,
+  u100 Bool,
+}
+
 prod TimelineResponseItem {
   month Str,
   Summary,

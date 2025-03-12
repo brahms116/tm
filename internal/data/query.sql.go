@@ -8,8 +8,6 @@ package data
 import (
 	"context"
 	"time"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const addTransaction = `-- name: AddTransaction :execrows
@@ -20,11 +18,11 @@ on conflict do nothing
 `
 
 type AddTransactionParams struct {
-	ID          string    `json:"id"`
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	AmountCents int32     `json:"amountCents"`
-	CategoryID  *string   `json:"categoryId"`
+	ID          string
+	Date        time.Time
+	Description string
+	AmountCents int32
+	CategoryID  *string
 }
 
 func (q *Queries) AddTransaction(ctx context.Context, db DBTX, arg AddTransactionParams) (int64, error) {
@@ -49,8 +47,8 @@ order by date desc
 `
 
 type ListTransactionsParams struct {
-	Date   time.Time `json:"date"`
-	Date_2 time.Time `json:"date2"`
+	Date   time.Time
+	Date_2 time.Time
 }
 
 func (q *Queries) ListTransactions(ctx context.Context, db DBTX, arg ListTransactionsParams) ([]TmTransaction, error) {
@@ -82,19 +80,19 @@ func (q *Queries) ListTransactions(ctx context.Context, db DBTX, arg ListTransac
 const summariseTransactions = `-- name: SummariseTransactions :one
 select
   sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
-  sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
+  -1 * sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
 from tm_transaction
 where date >= $1 and date < $2
 `
 
 type SummariseTransactionsParams struct {
-	Date   time.Time `json:"date"`
-	Date_2 time.Time `json:"date2"`
+	Date   time.Time
+	Date_2 time.Time
 }
 
 type SummariseTransactionsRow struct {
-	Earnings  int64 `json:"earnings"`
-	Spendings int64 `json:"spendings"`
+	Earnings  int64
+	Spendings int32
 }
 
 func (q *Queries) SummariseTransactions(ctx context.Context, db DBTX, arg SummariseTransactionsParams) (SummariseTransactionsRow, error) {
@@ -107,19 +105,19 @@ func (q *Queries) SummariseTransactions(ctx context.Context, db DBTX, arg Summar
 const summariseTransactionsU100 = `-- name: SummariseTransactionsU100 :one
 select
   sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
-  sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
+  -1 * sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
 from tm_transaction
 where date >= $1 and date < $2 and amount_cents >= -10000
 `
 
 type SummariseTransactionsU100Params struct {
-	Date   time.Time `json:"date"`
-	Date_2 time.Time `json:"date2"`
+	Date   time.Time
+	Date_2 time.Time
 }
 
 type SummariseTransactionsU100Row struct {
-	Earnings  int64 `json:"earnings"`
-	Spendings int64 `json:"spendings"`
+	Earnings  int64
+	Spendings int32
 }
 
 func (q *Queries) SummariseTransactionsU100(ctx context.Context, db DBTX, arg SummariseTransactionsU100Params) (SummariseTransactionsU100Row, error) {
@@ -137,8 +135,8 @@ order by amount_cents desc
 `
 
 type TopEarningsParams struct {
-	Date   time.Time `json:"date"`
-	Date_2 time.Time `json:"date2"`
+	Date   time.Time
+	Date_2 time.Time
 }
 
 func (q *Queries) TopEarnings(ctx context.Context, db DBTX, arg TopEarningsParams) ([]TmTransaction, error) {
@@ -175,8 +173,8 @@ order by amount_cents asc
 `
 
 type TopSpendingsParams struct {
-	Date   time.Time `json:"date"`
-	Date_2 time.Time `json:"date2"`
+	Date   time.Time
+	Date_2 time.Time
 }
 
 func (q *Queries) TopSpendings(ctx context.Context, db DBTX, arg TopSpendingsParams) ([]TmTransaction, error) {
@@ -213,8 +211,8 @@ order by amount_cents asc
 `
 
 type TopSpendingsU100Params struct {
-	Date   time.Time `json:"date"`
-	Date_2 time.Time `json:"date2"`
+	Date   time.Time
+	Date_2 time.Time
 }
 
 func (q *Queries) TopSpendingsU100(ctx context.Context, db DBTX, arg TopSpendingsU100Params) ([]TmTransaction, error) {
@@ -245,24 +243,25 @@ func (q *Queries) TopSpendingsU100(ctx context.Context, db DBTX, arg TopSpending
 
 const yearlyTimeline = `-- name: YearlyTimeline :many
 select
-  date_trunc('month', date) as month,
-  sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
-  sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
+  date_trunc('month', date)::date as month,
+  sum(case when amount_cents > 0 then amount_cents else 0 end)::int as earnings,
+  (-1 * sum(case when amount_cents < 0 then amount_cents else 0 end))::int as spendings
 from tm_transaction
 where date >= $1 and date < $2
 group by month
+having month is not null
 order by month asc
 `
 
 type YearlyTimelineParams struct {
-	Date   time.Time `json:"date"`
-	Date_2 time.Time `json:"date2"`
+	Date   time.Time
+	Date_2 time.Time
 }
 
 type YearlyTimelineRow struct {
-	Month     pgtype.Interval `json:"month"`
-	Earnings  int64           `json:"earnings"`
-	Spendings int64           `json:"spendings"`
+	Month     time.Time
+	Earnings  int32
+	Spendings int32
 }
 
 func (q *Queries) YearlyTimeline(ctx context.Context, db DBTX, arg YearlyTimelineParams) ([]YearlyTimelineRow, error) {

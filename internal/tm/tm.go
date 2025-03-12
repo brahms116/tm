@@ -10,8 +10,10 @@ import (
 
 type TM interface {
 	ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error)
-  Report(ctx context.Context, dateMonth time.Time) (contracts.MonthReport, error)
-  ReportText(ctx context.Context, dateMonth time.Time) (string, error)
+	Report(ctx context.Context, dateMonth time.Time) (contracts.MonthReport, error)
+	ReportText(ctx context.Context, dateMonth time.Time) (string, error)
+	ReportTimeline(ctx context.Context, start, end time.Time) (contracts.TimelineResponse, error)
+	ReportPeriod(ctx context.Context, start, end time.Time, u100 bool) (contracts.ReportResponse, error)
 }
 
 type tm struct {
