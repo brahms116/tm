@@ -77,6 +77,48 @@ func (q *Queries) ListTransactions(ctx context.Context, db DBTX, arg ListTransac
 	return items, nil
 }
 
+const monthlyTimeline = `-- name: MonthlyTimeline :many
+select
+  date_trunc('month', date)::date as month,
+  sum(case when amount_cents > 0 then amount_cents else 0 end)::int as earnings,
+  (-1 * sum(case when amount_cents < 0 then amount_cents else 0 end))::int as spendings
+from tm_transaction
+where date >= $1 and date < $2
+group by month
+order by month asc
+`
+
+type MonthlyTimelineParams struct {
+	Date   time.Time
+	Date_2 time.Time
+}
+
+type MonthlyTimelineRow struct {
+	Month     time.Time
+	Earnings  int32
+	Spendings int32
+}
+
+func (q *Queries) MonthlyTimeline(ctx context.Context, db DBTX, arg MonthlyTimelineParams) ([]MonthlyTimelineRow, error) {
+	rows, err := db.Query(ctx, monthlyTimeline, arg.Date, arg.Date_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MonthlyTimelineRow
+	for rows.Next() {
+		var i MonthlyTimelineRow
+		if err := rows.Scan(&i.Month, &i.Earnings, &i.Spendings); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const summariseTransactions = `-- name: SummariseTransactions :one
 select
   sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
@@ -231,48 +273,6 @@ func (q *Queries) TopSpendingsU100(ctx context.Context, db DBTX, arg TopSpending
 			&i.AmountCents,
 			&i.CategoryID,
 		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const yearlyTimeline = `-- name: YearlyTimeline :many
-select
-  date_trunc('month', date)::date as month,
-  sum(case when amount_cents > 0 then amount_cents else 0 end)::int as earnings,
-  (-1 * sum(case when amount_cents < 0 then amount_cents else 0 end))::int as spendings
-from tm_transaction
-where date >= $1 and date < $2
-group by month
-order by month asc
-`
-
-type YearlyTimelineParams struct {
-	Date   time.Time
-	Date_2 time.Time
-}
-
-type YearlyTimelineRow struct {
-	Month     time.Time
-	Earnings  int32
-	Spendings int32
-}
-
-func (q *Queries) YearlyTimeline(ctx context.Context, db DBTX, arg YearlyTimelineParams) ([]YearlyTimelineRow, error) {
-	rows, err := db.Query(ctx, yearlyTimeline, arg.Date, arg.Date_2)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []YearlyTimelineRow
-	for rows.Next() {
-		var i YearlyTimelineRow
-		if err := rows.Scan(&i.Month, &i.Earnings, &i.Spendings); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

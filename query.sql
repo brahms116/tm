@@ -10,7 +10,7 @@ from tm_transaction
 where date >= $1 and date <= $2
 order by date desc;
 
--- name: YearlyTimeline :many
+-- name: MonthlyTimeline :many
 select
   date_trunc('month', date)::date as month,
   sum(case when amount_cents > 0 then amount_cents else 0 end)::int as earnings,

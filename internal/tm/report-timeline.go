@@ -12,10 +12,10 @@ func (t *tm) ReportTimeline(
 	ctx context.Context,
 	start, end time.Time,
 ) (contracts.TimelineResponse, error) {
-	timelineRows, err := data.New().YearlyTimeline(
+	timelineRows, err := data.New().MonthlyTimeline(
 		ctx,
 		t.conn,
-		data.YearlyTimelineParams{
+		data.MonthlyTimelineParams{
 			Date:   start,
 			Date_2: end,
 		},
