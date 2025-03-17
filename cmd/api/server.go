@@ -26,6 +26,7 @@ func (s *Server) Start() error {
 	mux.HandleFunc("GET /health", s.health)
 	mux.Handle("POST /import", s.authMiddleware(http.HandlerFunc(s.importIngCsv)))
 	mux.Handle("GET /report", s.authMiddleware(http.HandlerFunc(s.report)))
+	mux.Handle("GET /is-authenticated", s.authMiddleware(http.HandlerFunc(s.isAuthenicated)))
 	mux.Handle("POST /report-period", s.authMiddleware(http.HandlerFunc(s.reportPeriod)))
 	mux.Handle("POST /report-timeline", s.authMiddleware(http.HandlerFunc(s.reportTimeline)))
 
@@ -40,6 +41,10 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	handlerutil.Ok(w, "OK")
 }
 
+func (s *Server) isAuthenicated(w http.ResponseWriter, r *http.Request) {
+	handlerutil.Ok(w, "OK")
+}
+
 func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
 	reqBody, ok := handlerutil.BodyJson[contracts.TimelineRequest](w, r)
 	if !ok {
@@ -49,13 +54,13 @@ func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
 	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid start date")
-    return
+		return
 	}
 
 	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid end date")
-    return
+		return
 	}
 
 	res, err := s.tm.ReportTimeline(
@@ -64,11 +69,11 @@ func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
 		end,
 	)
 
-  if err != nil {
-    log.Println(err.Error())
-    handlerutil.ServerError(w)
-    return
-  }
+	if err != nil {
+		log.Println(err.Error())
+		handlerutil.ServerError(w)
+		return
+	}
 
 	handlerutil.Json(w, res)
 	return
@@ -84,13 +89,13 @@ func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
 	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid start date")
-    return
+		return
 	}
 
 	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
 	if err != nil {
 		handlerutil.BadRequest(w, "Invalid end date")
-    return
+		return
 	}
 
 	res, err := s.tm.ReportPeriod(
@@ -100,11 +105,11 @@ func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
 		reqBody.U100,
 	)
 
-  if err != nil {
-    log.Println(err.Error())
-    handlerutil.ServerError(w)
-    return
-  }
+	if err != nil {
+		log.Println(err.Error())
+		handlerutil.ServerError(w)
+		return
+	}
 
 	handlerutil.Json(w, res)
 	return

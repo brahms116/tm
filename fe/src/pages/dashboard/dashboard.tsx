@@ -1,11 +1,9 @@
-import { LoginForm } from "./login-form";
-
-export const LoginPage: React.FC = () => {
+export const DashboardPage: React.FC = () => {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <LoginForm />
+        <h1>Dashboard</h1>
       </div>
     </div>
   );
-};
+}
