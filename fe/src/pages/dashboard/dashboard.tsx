@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FileUploadDialog } from "./file-upload-dialog";
+import { useState } from "react";
+import { startOfMonth, subMonths } from "date-fns";
+import { useReportTimelineQuery } from "@/api";
 
 const demoData: TimelineResponseItem[] = [
   {
@@ -106,7 +109,23 @@ const demoData: TimelineResponseItem[] = [
     },
   },
 ];
+
+const timelineResponseItemsToChartData = (is: TimelineResponseItem[]) => {}
+
+const thisMonth = startOfMonth(new Date());
+
+const prev12Months = Array.from({ length: 12 }, (_, i) => {
+  return subMonths(thisMonth, i + 1);
+});
+
 export const DashboardPage: React.FC = () => {
+  const [rm, setRm] = useState(prev12Months[0]);
+
+  const timelineQuery = useReportTimelineQuery({
+    startDate: prev12Months[11].toISOString(),
+    endDate: prev12Months[0].toISOString(),
+  });
+
   return (
     <div className="w-full p-16">
       <div className="mb-12 sm:flex justify-between items-center">
@@ -123,7 +142,7 @@ export const DashboardPage: React.FC = () => {
       </div>
       <Graph data={demoData} />
       <div className="mb-3 mt-12">
-        <MonthSelect />
+        <MonthSelect options={prev12Months} value={rm} onChange={setRm} />
       </div>
       <div className="mb-6">
         <CategorySelect />
@@ -155,3 +174,4 @@ export const DashboardPage: React.FC = () => {
     </div>
   );
 };
+

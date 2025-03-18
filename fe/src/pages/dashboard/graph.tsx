@@ -8,6 +8,12 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
+export type TransactionTimelineDataItem ={
+  month: Date;
+  spendingCents?: number;
+  earningCents?: number;
+}
+
 const chartConfig = {
   spendingCents: {
     label: "Spending",
