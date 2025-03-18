@@ -1,15 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { isAuthenticated as isAuthenticatedQuery } from "@/api";
 
 interface AuthContextType {
   isAuthenticated?: boolean;
-  login: (token: string) => Promise<void>;
+  login: (token: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 let didAuthInit = false;
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [isAuthenticated, setAuthenticated] = useState<boolean | undefined>(
@@ -17,19 +18,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   useEffect(() => {
+    const checkAuth = async () => {
+      setAuthenticated(await isAuthenticatedQuery());
+    };
     if (didAuthInit) {
       return;
     }
     didAuthInit = true;
-    const storedApiKey = localStorage.getItem("api-key");
-    if (storedApiKey) {
-      setAuthenticated(true);
-    }
+    void checkAuth();
   }, []);
 
-  const login = async (token: string) => {
+  const login = async (token: string): Promise<boolean> => {
     localStorage.setItem("api-key", token);
-    setAuthenticated(true);
+    const r = await isAuthenticatedQuery();
+    setAuthenticated(r);
+    return r;
   };
 
   return (
@@ -39,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export const useAuth = () => {
+export const useAuthContext = () => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider");
