@@ -12,14 +12,18 @@ export const MonthSelect: React.FC<{
   options: Date[];
   onChange: (value: Date) => void;
 }> = ({ value, options, onChange }) => {
+
   const fmtD = (d: Date) => format(d, "MMM yyyy");
 
+  console.log('options', options)
+
   return (
-    <Select value={value.toISOString()} onValueChange={(d) => onChange(new Date(d))}>
+    <Select
+      value={value.toISOString()}
+      onValueChange={(d) => onChange(new Date(d))}
+    >
       <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Theme">
-          {fmtD(value)}
-        </SelectValue>
+        <SelectValue placeholder="Theme">{fmtD(value)}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {options.map((d) => (

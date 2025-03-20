@@ -16,33 +16,31 @@ const utcDateToDate = (d: UTCDate): Date => {
   return new Date(d.toISOString());
 };
 
-export const DashboardPage: React.FC = () => {
-  const resToTimelineItems = (
-    ts: TimelineResponseItem[]
-  ): TransactionTimelineDataItem[] =>
-    prev12Months.reverse().map((m) => {
-      const i = ts.find((t) => {
-        return new Date(t.month).toISOString() === m.toISOString();
-      });
-      return i
-        ? {
-            month: m,
-            spending: i.summary.spendingCents / 100,
-            earning: i.summary.earningCents / 100,
-          }
-        : {
-            month: m,
-          };
+const resToTimelineItems = (
+  ts: TimelineResponseItem[]
+): TransactionTimelineDataItem[] =>
+  [...prev12Months].reverse().map((m) => {
+    const i = ts.find((t) => {
+      return new Date(t.month).toISOString() === m.toISOString();
     });
-
-  const thisMonth = utcDateToDate(
-    startOfMonth(new UTCDate())
-  );
-
-  const prev12Months = Array.from({ length: 12 }, (_, i) => {
-    return subMonths(thisMonth, i + 1);
+    return i
+      ? {
+          month: m,
+          spending: i.summary.spendingCents / 100,
+          earning: i.summary.earningCents / 100,
+        }
+      : {
+          month: m,
+        };
   });
 
+const thisMonth = utcDateToDate(startOfMonth(new UTCDate()));
+
+const prev12Months = Array.from({ length: 12 }, (_, i) => {
+  return subMonths(thisMonth, i + 1);
+});
+
+export const DashboardPage: React.FC = () => {
   const [rm, setRm] = useState(prev12Months[0]);
 
   const timelineQuery = useReportTimelineQuery({
