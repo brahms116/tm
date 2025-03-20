@@ -40,6 +40,7 @@ const prev12Months = Array.from({ length: 12 }, (_, i) => {
 export const DashboardPage: React.FC = () => {
   const [rm, setRm] = useState(prev12Months[0]);
   const [u100, setU100] = useState(false);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
   const timelineQuery = useReportTimelineQuery({
     startDate: utcEquiv(prev12Months[11]).toISOString(),
@@ -51,21 +52,21 @@ export const DashboardPage: React.FC = () => {
   const reportQuery = useReportQuery({
     endDate: utcEquiv(addMonths(rm, 1)).toISOString(),
     startDate: utcEquiv(rm).toISOString(),
-    u100
+    u100,
   });
 
   return (
     <div className="w-full p-16">
       <div className="mb-12 sm:flex justify-between items-center">
         <h1 className="sm:mb-0 mb-4 text-4xl font-extrabold">Dashboard</h1>
-        <Dialog>
+        <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
           <DialogTrigger asChild>
             <Button className="">
               <Upload size={16} />
               Upload transactions
             </Button>
           </DialogTrigger>
-          <FileUploadDialog />
+          <FileUploadDialog onClose={() => setIsUploadDialogOpen(false)} />
         </Dialog>
       </div>
       <TransactionTimeline data={chartItems} />

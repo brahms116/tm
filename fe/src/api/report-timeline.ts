@@ -12,7 +12,7 @@ export const useReportTimelineQuery = (
   req: TimelineRequest
 ): UseQueryResult<TimelineResponse> => {
   return useQuery({
-    queryKey: ["report-timeline", req],
+    queryKey: ["report-timeline"],
     queryFn: () => reportTimelineQuery(req),
   });
 }

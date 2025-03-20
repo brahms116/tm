@@ -1,20 +1,19 @@
-import { getToken } from "./get-token"
-import configuration from '@/configuration'
+import { getToken } from "./get-token";
+import configuration from "@/configuration";
 
-export const post =  async (path: string, data: unknown): Promise<unknown> => {
-  console.log(getToken())
+export const post = async (path: string, data: unknown): Promise<unknown> => {
   const response = await fetch(configuration.apiUrl + path, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `${getToken()}`
+      "Content-Type": "application/json",
+      Authorization: `${getToken()}`,
     },
-    body: JSON.stringify(data)
-  })
+    body: JSON.stringify(data),
+  });
 
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await response.text());
   }
 
-  return response.json()
-}
+  return response.json();
+};

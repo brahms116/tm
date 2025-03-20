@@ -149,7 +149,7 @@ select
   sum(case when amount_cents > 0 then amount_cents else 0 end) as earnings,
   -1 * sum(case when amount_cents < 0 then amount_cents else 0 end) as spendings
 from tm_transaction
-where date >= $1 and date < $2 and amount_cents >= -10000
+where date >= $1 and date < $2 and amount_cents >= -10000 and amount_cents < 0
 `
 
 type SummariseTransactionsU100Params struct {
