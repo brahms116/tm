@@ -1,4 +1,3 @@
-import { TimelineResponseItem } from "@/contracts";
 import { format } from "date-fns";
 import { CartesianGrid, XAxis, BarChart, Bar } from "recharts";
 import {
@@ -8,26 +7,27 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-export type TransactionTimelineDataItem ={
+export type TransactionTimelineDataItem = {
   month: Date;
-  spendingCents?: number;
-  earningCents?: number;
-}
+  spending?: number;
+  earning?: number;
+};
 
 const chartConfig = {
-  spendingCents: {
+  spending: {
     label: "Spending",
     color: "#ef4444",
   },
-  earningCents: {
+  earning: {
     label: "Earning",
     color: "#a3e635",
   },
 } satisfies ChartConfig;
 
-export const Graph: React.FC<{
-  data: TimelineResponseItem[];
+export const TransactionTimeline: React.FC<{
+  data: TransactionTimelineDataItem[];
 }> = ({ data }) => {
+
   return (
     <ChartContainer className="h-72 w-full" config={chartConfig}>
       <BarChart
@@ -35,8 +35,8 @@ export const Graph: React.FC<{
         data={data.map((e) => {
           return {
             month: format(new Date(e.month), "MMM"),
-            spendingCents: e.summary.spendingCents / 100,
-            earningCents: e.summary.earningCents / 100,
+            earning: e.earning,
+            spending: e.spending,
           };
         })}
         margin={{
@@ -52,23 +52,29 @@ export const Graph: React.FC<{
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          onClick={(e) => {console.log(e)}}
+          onClick={(e) => {
+            console.log(e);
+          }}
         />
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent hideLabel />}
         />
         <Bar
-          dataKey="spendingCents"
-          fill="var(--color-spendingCents)"
+          dataKey="spending"
+          fill="var(--color-spending)"
           radius={4}
-          onClick={(e) => {console.log(e)}}
+          onClick={(e) => {
+            console.log(e);
+          }}
         />
         <Bar
-          dataKey="earningCents"
-          fill="var(--color-earningCents)"
+          dataKey="earning"
+          fill="var(--color-earning)"
           radius={4}
-          onClick={(e) => {console.log(e)}}
+          onClick={(e) => {
+            console.log(e);
+          }}
         />
       </BarChart>
     </ChartContainer>
