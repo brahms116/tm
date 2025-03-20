@@ -8,20 +8,17 @@ import { Upload } from "lucide-react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FileUploadDialog } from "./file-upload-dialog";
 import { useState } from "react";
-import { startOfMonth, subMonths } from "date-fns";
-import { UTCDate } from "@date-fns/utc";
-import { useReportTimelineQuery } from "@/api";
-
-const utcDateToDate = (d: UTCDate): Date => {
-  return new Date(d.toISOString());
-};
+import { addMonths, isEqual, startOfMonth, subMonths } from "date-fns";
+import { useReportQuery, useReportTimelineQuery } from "@/api";
+import { utcEquiv } from "@/date-utils";
+import { Cents } from "@/components/cents";
 
 const resToTimelineItems = (
   ts: TimelineResponseItem[]
 ): TransactionTimelineDataItem[] =>
   [...prev12Months].reverse().map((m) => {
     const i = ts.find((t) => {
-      return new Date(t.month).toISOString() === m.toISOString();
+      return isEqual(new Date(t.month), utcEquiv(m));
     });
     return i
       ? {
@@ -34,7 +31,7 @@ const resToTimelineItems = (
         };
   });
 
-const thisMonth = utcDateToDate(startOfMonth(new UTCDate()));
+const thisMonth = startOfMonth(new Date());
 
 const prev12Months = Array.from({ length: 12 }, (_, i) => {
   return subMonths(thisMonth, i + 1);
@@ -42,13 +39,20 @@ const prev12Months = Array.from({ length: 12 }, (_, i) => {
 
 export const DashboardPage: React.FC = () => {
   const [rm, setRm] = useState(prev12Months[0]);
+  const [u100, setU100] = useState(false);
 
   const timelineQuery = useReportTimelineQuery({
-    startDate: prev12Months[11].toISOString(),
-    endDate: prev12Months[0].toISOString(),
+    startDate: utcEquiv(prev12Months[11]).toISOString(),
+    endDate: utcEquiv(thisMonth).toISOString(),
   });
 
   const chartItems = resToTimelineItems(timelineQuery.data?.items ?? []);
+
+  const reportQuery = useReportQuery({
+    endDate: utcEquiv(addMonths(rm, 1)).toISOString(),
+    startDate: utcEquiv(rm).toISOString(),
+    u100
+  });
 
   return (
     <div className="w-full p-16">
@@ -69,32 +73,46 @@ export const DashboardPage: React.FC = () => {
         <MonthSelect options={prev12Months} value={rm} onChange={setRm} />
       </div>
       <div className="mb-6">
-        <CategorySelect />
+        <CategorySelect isU100={u100} setIsU100={setU100} />
       </div>
       <div>
-        <div className="py-4">
-          <h4 className="scroll-m-20 mb-1 text-ml font-semibold tracking-tight">
-            Total Spending:
-          </h4>
-          <p className="text-red-400">$2987</p>
-        </div>
-        <div className="py-4">
-          <h4 className="scroll-m-20 mb-1 text-ml font-semibold tracking-tight">
-            Total Earning:
-          </h4>
-          <p className="text-lime-500">$2300</p>
-        </div>
-        <div className="py-4">
-          <h4 className="scroll-m-20 mb-1 text-ml font-semibold tracking-tight">
-            Net:
-          </h4>
-          <p className="text-lime-500">$2300</p>
-        </div>
+        <SummaryItem
+          className="py-4"
+          heading="Total Spending"
+          cents={reportQuery.data?.summary.spendingCents ?? 0}
+          type="negative"
+        />
+        <SummaryItem
+          className="py-4"
+          heading="Total Earning"
+          cents={reportQuery.data?.summary.earningCents ?? 0}
+        />
+        <SummaryItem
+          className="py-4"
+          heading="Net"
+          cents={reportQuery.data?.summary.netCents ?? 0}
+        />
       </div>
       <h3 className="mb-6 mt-12 text-2xl font-semibold">Top Spendings</h3>
-      <TransactionsTable />
+      <TransactionsTable data={reportQuery.data?.topSpendings ?? []} />
       <h3 className="mb-6 mt-12 text-2xl font-semibold">Top Earnings</h3>
-      <TransactionsTable />
+      <TransactionsTable data={reportQuery.data?.topEarnings ?? []} />
+    </div>
+  );
+};
+
+export const SummaryItem: React.FC<{
+  heading: string;
+  cents: number;
+  type?: "negative" | "positive";
+  className?: string;
+}> = ({ heading, cents, className, type }) => {
+  return (
+    <div className={className}>
+      <h4 className="scroll-m-20 mb-1 text-ml font-semibold tracking-tight">
+        {heading}:
+      </h4>
+      <Cents cents={cents} type={type} />
     </div>
   );
 };

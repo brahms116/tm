@@ -15,8 +15,6 @@ export const MonthSelect: React.FC<{
 
   const fmtD = (d: Date) => format(d, "MMM yyyy");
 
-  console.log('options', options)
-
   return (
     <Select
       value={value.toISOString()}
