@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path"
 	"strings"
 	"time"
 	"tm/internal/cfg"
@@ -22,6 +24,9 @@ func New(cfg cfg.Cfg, tm tm.TM) *Server {
 }
 
 func (s *Server) Start() error {
+	distDir := http.Dir("./dist")
+	fserver := http.FileServer(distDir)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
 	mux.Handle("POST /import", s.applyMiddlewares(http.HandlerFunc(s.importIngCsv)))
@@ -29,6 +34,28 @@ func (s *Server) Start() error {
 	mux.Handle("POST /is-authenticated", s.applyMiddlewares(http.HandlerFunc(s.isAuthenicated)))
 	mux.Handle("POST /report-period", s.applyMiddlewares(http.HandlerFunc(s.reportPeriod)))
 	mux.Handle("POST /report-timeline", s.applyMiddlewares(http.HandlerFunc(s.reportTimeline)))
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upath := r.URL.Path
+		if !strings.HasPrefix(upath, "/") {
+			upath = "/" + upath
+			r.URL.Path = upath
+		}
+		upath = path.Clean(upath)
+		f, err := distDir.Open(upath)
+		if os.IsNotExist(err) {
+			r.URL.Path = "/"
+			fserver.ServeHTTP(w, r)
+			return
+		}
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		f.Close()
+		fserver.ServeHTTP(w, r)
+		return
+	}))
 
 	handler := s.corsMiddleware(mux)
 
