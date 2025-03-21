@@ -1,7 +1,9 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -23,10 +25,17 @@ func New(cfg cfg.Cfg, tm tm.TM) *Server {
 	return &Server{tm: tm, cfg: cfg}
 }
 
-func (s *Server) Start() error {
-	distDir := http.Dir("./dist")
-	fserver := http.FileServer(distDir)
+//go:embed dist
+var dist embed.FS
 
+func (s *Server) Start() error {
+	distFs, err := fs.Sub(dist, "dist")
+	if err != nil {
+		return fmt.Errorf("error getting dist dir: %w", err)
+	}
+	httpFs := http.FS(distFs)
+
+	fserver := http.FileServer(httpFs)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
 	mux.Handle("POST /import", s.applyMiddlewares(http.HandlerFunc(s.importIngCsv)))
@@ -41,7 +50,7 @@ func (s *Server) Start() error {
 			r.URL.Path = upath
 		}
 		upath = path.Clean(upath)
-		f, err := distDir.Open(upath)
+		f, err := httpFs.Open(upath)
 		if os.IsNotExist(err) {
 			r.URL.Path = "/"
 			fserver.ServeHTTP(w, r)
@@ -59,7 +68,7 @@ func (s *Server) Start() error {
 
 	handler := s.corsMiddleware(mux)
 
-	err := http.ListenAndServe(":8081", handler)
+	err = http.ListenAndServe(":8081", handler)
 	if err != nil {
 		return fmt.Errorf("error starting server: %w", err)
 	}
