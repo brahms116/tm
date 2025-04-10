@@ -2,16 +2,15 @@ package tm
 
 import (
 	"context"
-	"fmt"
+	"gorm.io/gorm/clause"
 	"io"
 	"tm/pkg/contracts"
-	"gorm.io/gorm/clause"
 )
 
 func (t *tm) ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error) {
 	params, err := ParseCsvFile(f)
 	if err != nil {
-		return contracts.ImportCsvResponse{}, fmt.Errorf("error parsing csv: %w", err)
+		return contracts.ImportCsvResponse{}, wrapErr(err, "error parsing csv file")
 	}
 
 	duplicatesCount := 0
@@ -20,7 +19,7 @@ func (t *tm) ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvRes
 		dbModel := param.toDbModel()
 		result := t.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&dbModel)
 		if result.Error != nil {
-			return contracts.ImportCsvResponse{}, fmt.Errorf("error adding transaction: %w", err)
+			return contracts.ImportCsvResponse{}, wrapErr(result.Error, "error inserting transaction")
 		}
 		if result.RowsAffected != 1 {
 			duplicatesCount++
