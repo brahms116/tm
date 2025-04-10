@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-	"tm/internal/data"
 )
 
-func bendigoFileAdapter(rows [][]string) ([]data.AddTransactionParams, error) {
-	addParams := []data.AddTransactionParams{}
+func bendigoFileAdapter(rows [][]string) ([]importTransactionParams, error) {
+	addParams := []importTransactionParams{}
 	for _, row := range rows {
 		addParam, err := bendigoRowAdapter(row)
 		if err != nil {
@@ -20,9 +19,9 @@ func bendigoFileAdapter(rows [][]string) ([]data.AddTransactionParams, error) {
 }
 
 // Parses a row like "31/01/2024","500.00","Description 1"
-func bendigoRowAdapter(row []string) (data.AddTransactionParams, error) {
+func bendigoRowAdapter(row []string) (importTransactionParams, error) {
 	if len(row) != 3 {
-		return data.AddTransactionParams{}, fmt.Errorf("expected 3 columns, got %d", len(row))
+		return importTransactionParams{}, fmt.Errorf("expected 3 columns, got %d", len(row))
 	}
 
 	dateStr := row[0]
@@ -33,19 +32,19 @@ func bendigoRowAdapter(row []string) (data.AddTransactionParams, error) {
 
 	time, err := time.Parse("02/01/2006", dateStr)
 	if err != nil {
-		return data.AddTransactionParams{}, fmt.Errorf("error parsing date: %w", err)
+		return importTransactionParams{}, fmt.Errorf("error parsing date: %w", err)
 	}
 
 	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
-		return data.AddTransactionParams{}, fmt.Errorf("error parsing amount: %w", err)
+		return importTransactionParams{}, fmt.Errorf("error parsing amount: %w", err)
 	}
 	amountCents := int32(amount * 100)
 
-	return data.AddTransactionParams{
-		ID:          id,
-		Date:        time,
-		Description: description,
-		AmountCents: amountCents,
+	return importTransactionParams{
+		id:          id,
+		date:        time,
+		description: description,
+		amountCents: amountCents,
 	}, nil
 }

@@ -5,22 +5,21 @@ import (
 	"os"
 	"testing"
 	"time"
-	"tm/internal/data"
 )
 
 func TestIngFileAdapter(t *testing.T) {
-	expected := []data.AddTransactionParams{
+	expected := []importTransactionParams{
 		{
-			ID:          "24/01/2024Some buy hey?",
-			Date:        time.Date(2024, 1, 24, 0, 0, 0, 0, time.UTC),
-			Description: "Some buy hey?",
-			AmountCents: -4800,
+			id:          "24/01/2024Some buy hey?",
+			date:        time.Date(2024, 1, 24, 0, 0, 0, 0, time.UTC),
+			description: "Some buy hey?",
+			amountCents: -4800,
 		},
 		{
-			ID:          "12/12/2023Credit",
-			Date:        time.Date(2023, 12, 12, 0, 0, 0, 0, time.UTC),
-			Description: "Credit",
-			AmountCents: 3000,
+			id:          "12/12/2023Credit",
+			date:        time.Date(2023, 12, 12, 0, 0, 0, 0, time.UTC),
+			description: "Credit",
+			amountCents: 3000,
 		},
 	}
 

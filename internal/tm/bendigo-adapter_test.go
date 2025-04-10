@@ -5,22 +5,21 @@ import (
 	"os"
 	"testing"
 	"time"
-	"tm/internal/data"
 )
 
 func TestBendigoFileAdapter(t *testing.T) {
-	expected := []data.AddTransactionParams{
+	expected := []importTransactionParams{
 		{
-			ID:          "31/01/2024Description 1",
-			Date:        time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
-			Description: "Description 1",
-			AmountCents: 50000,
+			id:          "31/01/2024Description 1",
+			date:        time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+			description: "Description 1",
+			amountCents: 50000,
 		},
 		{
-			ID:          "31/01/2024Description 2",
-			Date:        time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
-			Description: "Description 2",
-			AmountCents: -1310,
+			id:          "31/01/2024Description 2",
+			date:        time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+			description: "Description 2",
+			amountCents: -1310,
 		},
 	}
 

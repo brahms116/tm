@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"tm/internal/data"
 	"tm/pkg/contracts"
+	"gorm.io/gorm/clause"
 )
 
 func (t *tm) ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvResponse, error) {
@@ -17,11 +17,12 @@ func (t *tm) ImportCsv(ctx context.Context, f io.Reader) (contracts.ImportCsvRes
 	duplicatesCount := 0
 
 	for _, param := range params {
-		count, err := data.New().AddTransaction(ctx, t.conn, param)
-		if err != nil {
+		dbModel := param.toDbModel()
+		result := t.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&dbModel)
+		if result.Error != nil {
 			return contracts.ImportCsvResponse{}, fmt.Errorf("error adding transaction: %w", err)
 		}
-		if count != 1 {
+		if result.RowsAffected != 1 {
 			duplicatesCount++
 		}
 	}

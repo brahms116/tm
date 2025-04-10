@@ -4,17 +4,16 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"tm/internal/data"
 )
 
-type CsvFileAdapter func (rows [][]string) ([]data.AddTransactionParams, error)
+type CsvFileAdapter func (rows [][]string) ([]importTransactionParams, error)
 
 var adapters = []CsvFileAdapter{
 	ingFileAdapter,
 	bendigoFileAdapter,
 }
 
-func ParseCsvFile(f io.Reader) ([]data.AddTransactionParams, error) {
+func ParseCsvFile(f io.Reader) ([]importTransactionParams, error) {
 	r := csv.NewReader(f)
 	rows, err := r.ReadAll()
 	if err != nil {

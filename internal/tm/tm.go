@@ -2,6 +2,7 @@ package tm
 
 import (
 	"context"
+	"gorm.io/gorm"
 	"io"
 	"time"
 	"tm/internal/db"
@@ -16,8 +17,9 @@ type TM interface {
 
 type tm struct {
 	conn *db.DB
+	db   *gorm.DB
 }
 
-func New(conn *db.DB) TM {
-	return &tm{conn: conn}
+func New(conn *db.DB, db *gorm.DB) TM {
+	return &tm{conn: conn, db: db}
 }
