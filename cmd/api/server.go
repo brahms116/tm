@@ -39,7 +39,6 @@ func (s *Server) Start() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
 	mux.Handle("POST /import", s.applyMiddlewares(http.HandlerFunc(s.importIngCsv)))
-	mux.Handle("GET /report", s.applyMiddlewares(http.HandlerFunc(s.report)))
 	mux.Handle("POST /is-authenticated", s.applyMiddlewares(http.HandlerFunc(s.isAuthenicated)))
 	mux.Handle("POST /report-period", s.applyMiddlewares(http.HandlerFunc(s.reportPeriod)))
 	mux.Handle("POST /report-timeline", s.applyMiddlewares(http.HandlerFunc(s.reportTimeline)))
@@ -155,32 +154,6 @@ func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
 
 	handlerutil.Json(w, res)
 	return
-}
-
-// GET /report?month=2021-01&format=text
-func (s *Server) report(w http.ResponseWriter, r *http.Request) {
-	dateMonth, ok := handlerutil.ReadQueryTime(w, r, "month", "2006-01")
-	if !ok {
-		return
-	}
-
-	format := handlerutil.ReadOptionalQueryString(r, "format", "json")
-	if format == "text" {
-
-		result, err := s.tm.ReportText(r.Context(), dateMonth)
-		if err != nil {
-			handlerutil.BadRequest(w, err.Error())
-			return
-		}
-		handlerutil.Text(w, result)
-	} else {
-		result, err := s.tm.Report(r.Context(), dateMonth)
-		if err != nil {
-			handlerutil.BadRequest(w, err.Error())
-			return
-		}
-		handlerutil.Json(w, result)
-	}
 }
 
 func (s *Server) importIngCsv(w http.ResponseWriter, r *http.Request) {
