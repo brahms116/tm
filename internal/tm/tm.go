@@ -5,7 +5,6 @@ import (
 	"gorm.io/gorm"
 	"io"
 	"time"
-	"tm/internal/db"
 	"tm/pkg/contracts"
 )
 
@@ -16,10 +15,9 @@ type TM interface {
 }
 
 type tm struct {
-	conn *db.DB
 	db   *gorm.DB
 }
 
-func New(conn *db.DB, db *gorm.DB) TM {
-	return &tm{conn: conn, db: db}
+func New(db *gorm.DB) TM {
+	return &tm{db: db}
 }
