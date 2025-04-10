@@ -2,11 +2,11 @@ package tm
 
 import (
 	"time"
-	"tm/internal/data"
+	"tm/internal/orm/model"
 	"tm/pkg/contracts"
 )
 
-func transactionToContract(t data.TmTransaction) contracts.Transaction {
+func transactionToContract(t model.TmTransaction) contracts.Transaction {
 	return contracts.Transaction{
 		Id:          t.ID,
 		Date:        t.Date.Format(time.RFC3339),
@@ -16,7 +16,7 @@ func transactionToContract(t data.TmTransaction) contracts.Transaction {
 	}
 }
 
-func transactionsToContracts(ts []data.TmTransaction) []contracts.Transaction {
+func transactionsToContracts(ts []model.TmTransaction) []contracts.Transaction {
 	contractTransactions := make([]contracts.Transaction, len(ts))
 	for i, t := range ts {
 		contractTransactions[i] = transactionToContract(t)
