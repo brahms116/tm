@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 	"tm/internal/cfg"
@@ -91,4 +92,33 @@ func TestImportCsv(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("Should not override existing duplicate transactions", func(t *testing.T) {
+		t.Cleanup(func() {
+			gormDb.Where("1=1").Delete(&model.TmTransaction{})
+		})
+
+		existingRow := model.TmTransaction{
+			ID:          "31/01/2024Description 1",
+			Date:        time.Date(2024, 1, 31, 0, 0, 0, 0, time.UTC),
+			Description: "original description",
+			AmountCents: 40000,
+		}
+
+		err := gormDb.Create(&existingRow).Error
+		require.NoError(t, err)
+
+		testCsvFile := `"31/01/2024","500.00","Description 1"`
+		reader := strings.NewReader(testCsvFile)
+
+		res, err := tm.ImportCsv(context.Background(), reader)
+		require.NoError(t, err)
+		require.Equal(t, 1, res.Total)
+		require.Equal(t, 1, res.Duplicates)
+
+		var resultTransaction model.TmTransaction
+		err = gormDb.Where("id = ?", existingRow.ID).First(&resultTransaction).Error
+		require.NoError(t, err)
+		require.Equal(t, existingRow, resultTransaction)
+	})
 }
