@@ -56,7 +56,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   return (
-    <div className="w-full p-16">
+    <div className="w-full p-8 md:p-16">
       <div className="mb-12 sm:flex justify-between items-center">
         <h1 className="sm:mb-0 mb-4 text-4xl font-extrabold">Dashboard</h1>
         <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
