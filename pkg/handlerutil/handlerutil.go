@@ -59,18 +59,15 @@ func ReadFile(w http.ResponseWriter, r *http.Request, key string) (io.Reader, fu
 }
 
 func BadRequest(w http.ResponseWriter, msg string) {
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(msg))
+  http.Error(w, msg, http.StatusBadRequest)
 }
 
 func ServerError(w http.ResponseWriter) {
-  w.WriteHeader(http.StatusInternalServerError)
-  w.Write([]byte("Internal server error"))
+  http.Error(w, "Internal server error", http.StatusInternalServerError)
 }
 
 func Unauthorized(w http.ResponseWriter, msg string) {
-	w.WriteHeader(http.StatusUnauthorized)
-	w.Write([]byte(msg))
+  http.Error(w, msg, http.StatusUnauthorized)
 }
 
 func Ok(w http.ResponseWriter, msg string) {
