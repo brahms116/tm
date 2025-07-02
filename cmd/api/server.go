@@ -11,7 +11,6 @@ import (
 	"strings"
 	"tm/internal/cfg"
 	"tm/internal/tm"
-	"tm/pkg/handlerutil"
 )
 
 type Server struct {
@@ -37,9 +36,13 @@ func (s *Server) Start() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
 	mux.Handle("POST /import", s.applyMiddlewares(http.HandlerFunc(s.importCsv)))
+
+  // Routes are post atm, as haven't figured built in custom field annotations for in our contracts generation tool.
 	mux.Handle("POST /is-authenticated", s.applyMiddlewares(http.HandlerFunc(s.isAuthenicated)))
 	mux.Handle("POST /report-period", s.applyMiddlewares(http.HandlerFunc(s.reportPeriod)))
 	mux.Handle("POST /report-timeline", s.applyMiddlewares(http.HandlerFunc(s.reportTimeline)))
+
+
 	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		upath := r.URL.Path
 		if !strings.HasPrefix(upath, "/") {
@@ -76,36 +79,4 @@ func (s *Server) applyMiddlewares(h http.Handler) http.Handler {
 	return s.authMiddleware(h)
 }
 
-func (s *Server) health(w http.ResponseWriter, r *http.Request) {
-	handlerutil.Ok(w, "OK")
-}
 
-func (s *Server) isAuthenicated(w http.ResponseWriter, r *http.Request) {
-	handlerutil.Json(w, true)
-}
-func (s *Server) corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow all origins
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		// Handle preflight requests
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func (s *Server) authMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		apiKey := r.Header.Get("Authorization")
-		apiKey = strings.ReplaceAll(apiKey, "Bearer ", "")
-		if apiKey != s.cfg.ApiKey {
-			handlerutil.Unauthorized(w, "Invalid api key")
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
