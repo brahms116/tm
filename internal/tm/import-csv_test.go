@@ -1,4 +1,4 @@
-package tm
+package tm_test
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"tm/internal/cfg"
 	"tm/internal/orm"
 	"tm/internal/orm/model"
+	"tm/internal/tm"
 
 	"github.com/stretchr/testify/require"
 )
@@ -64,7 +65,7 @@ func TestImportCsv(t *testing.T) {
 	if err != nil {
 		require.NoError(t, err)
 	}
-	tm := New(gormDb)
+	manager := tm.New(gormDb)
 	ctx := context.Background()
 
 	for _, csvFileFormat := range csvFileFormats {
@@ -79,7 +80,7 @@ func TestImportCsv(t *testing.T) {
 				f.Close()
 			})
 
-			res, err := tm.ImportCsv(ctx, f)
+			res, err := manager.ImportCsv(ctx, f)
 			require.NoError(t, err)
 			require.Equal(t, len(csvFileFormat.expected), res.Total)
 
@@ -111,7 +112,7 @@ func TestImportCsv(t *testing.T) {
 		testCsvFile := `"31/01/2024","500.00","Description 1"`
 		reader := strings.NewReader(testCsvFile)
 
-		res, err := tm.ImportCsv(context.Background(), reader)
+		res, err := manager.ImportCsv(context.Background(), reader)
 		require.NoError(t, err)
 		require.Equal(t, 1, res.Total)
 		require.Equal(t, 1, res.Duplicates)

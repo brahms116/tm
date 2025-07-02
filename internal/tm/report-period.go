@@ -41,7 +41,7 @@ func (t *tm) ReportPeriod(
 	summary.NetCents = summary.EarningCents - summary.SpendingCents
 
 	topSpendings := []model.TmTransaction{}
-	topSpendingsQuery := t.db.Where("date >= ? and date < ?", start, end).Order("amount_cents desc").Where("amount_cents < 0")
+	topSpendingsQuery := t.db.Where("date >= ? and date < ?", start, end).Order("amount_cents asc").Where("amount_cents < 0")
 	if u100 {
 		topSpendingsQuery = topSpendingsQuery.Where("amount_cents > -10000")
 	}

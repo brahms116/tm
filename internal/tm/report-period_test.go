@@ -1,4 +1,4 @@
-package tm
+package tm_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"tm/internal/cfg"
 	"tm/internal/orm"
 	"tm/internal/orm/model"
+	"tm/internal/tm"
 	"tm/pkg/contracts"
 
 	"github.com/stretchr/testify/require"
@@ -26,7 +27,7 @@ func TestReportPeriod(t *testing.T) {
 	if err != nil {
 		require.NoError(t, err)
 	}
-	tm := New(gormDb)
+	manager := tm.New(gormDb)
 	ctx := context.Background()
 
 	t.Cleanup(func() {
@@ -61,6 +62,11 @@ func TestReportPeriod(t *testing.T) {
 			AmountCents: -900,
 			Description: "During 3",
 		},
+    {
+      ID:          "during4",
+      Date:        start.AddDate(0, 0, 3),
+      AmountCents: -800,
+    },
 		{
 			ID:          "after",
 			Date:        end,
@@ -75,35 +81,26 @@ func TestReportPeriod(t *testing.T) {
 	}
 
 	gormDb.Create(&models)
-	result, err := tm.ReportPeriod(ctx, start, end, false)
+	result, err := manager.ReportPeriod(ctx, start, end, false)
 	require.NoError(t, err)
 
 	t.Run("Should calculate the correct stats for the period", func(t *testing.T) {
 		require.Equal(t, 2800, result.Summary.EarningCents)
-		require.Equal(t, 900, result.Summary.SpendingCents)
-		require.Equal(t, 1900, result.Summary.NetCents)
+		require.Equal(t, 1700, result.Summary.SpendingCents)
+		require.Equal(t, 1100, result.Summary.NetCents)
 	})
 
-	t.Run("Should return the correct spending transactions", func(t *testing.T) {
-		require.Len(t, result.TopSpendings, 1)
-		requireContractEqualModel(t, idToModel["during3"], result.TopSpendings[0])
+	t.Run("Should return the correct spending transactions in asc order", func(t *testing.T) {
+		require.Len(t, result.TopSpendings, 2)
+    // Should be in ascending order
+    requireContractEqualModel(t, idToModel["during3"], result.TopSpendings[0])
+    requireContractEqualModel(t, idToModel["during4"], result.TopSpendings[1])
 	})
 
-	t.Run("Should return the correct earning transactions", func(t *testing.T) {
+	t.Run("Should return the correct earning transactions in descending order", func(t *testing.T) {
 		require.Len(t, result.TopEarnings, 2)
-
-		idToResult := map[string]contracts.Transaction{}
-		for _, transaction := range result.TopEarnings {
-			idToResult[transaction.Id] = transaction
-		}
-
-		earning1, ok := idToResult["during1"]
-		require.True(t, ok)
-
-		earning2, ok := idToResult["during2"]
-		require.True(t, ok)
-
-		requireContractEqualModel(t, idToModel["during1"], earning1)
-		requireContractEqualModel(t, idToModel["during2"], earning2)
+    // Should be in descending order
+		requireContractEqualModel(t, idToModel["during2"], result.TopEarnings[0])
+		requireContractEqualModel(t, idToModel["during1"], result.TopEarnings[1])
 	})
 }
