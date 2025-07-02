@@ -11,7 +11,6 @@ import (
 	"strings"
 	"tm/internal/cfg"
 	"tm/internal/tm"
-	"tm/pkg/contracts"
 	"tm/pkg/handlerutil"
 )
 
@@ -83,53 +82,6 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) isAuthenicated(w http.ResponseWriter, r *http.Request) {
 	handlerutil.Json(w, true)
-}
-
-func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
-	reqBody, ok := handlerutil.BodyJson[contracts.TimelineRequest](w, r)
-	if !ok {
-		return
-	}
-
-	res, err := s.tm.ReportTimeline(
-		r.Context(),
-		reqBody.StartDate,
-		reqBody.EndDate,
-	)
-
-	if err != nil {
-		log.Println(err.Error())
-		handlerutil.ServerError(w)
-		return
-	}
-
-	handlerutil.Json(w, res)
-	return
-
-}
-
-func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
-	reqBody, ok := handlerutil.BodyJson[contracts.ReportRequest](w, r)
-	if !ok {
-		return
-	}
-
-
-	res, err := s.tm.ReportPeriod(
-		r.Context(),
-		reqBody.StartDate,
-		reqBody.EndDate,
-		reqBody.U100,
-	)
-
-	if err != nil {
-		log.Println(err.Error())
-		handlerutil.ServerError(w)
-		return
-	}
-
-	handlerutil.Json(w, res)
-	return
 }
 
 func (s *Server) importIngCsv(w http.ResponseWriter, r *http.Request) {
