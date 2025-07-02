@@ -66,6 +66,7 @@ func TestReportPeriod(t *testing.T) {
       ID:          "during4",
       Date:        start.AddDate(0, 0, 3),
       AmountCents: -800,
+      Description: "During 4",
     },
 		{
 			ID:          "after",
