@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 	"tm/internal/cfg"
 	"tm/internal/tm"
 	"tm/pkg/contracts"
@@ -92,22 +91,10 @@ func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
-	if err != nil {
-		handlerutil.BadRequest(w, "Invalid start date")
-		return
-	}
-
-	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
-	if err != nil {
-		handlerutil.BadRequest(w, "Invalid end date")
-		return
-	}
-
 	res, err := s.tm.ReportTimeline(
 		r.Context(),
-		start,
-		end,
+		reqBody.StartDate,
+		reqBody.EndDate,
 	)
 
 	if err != nil {
@@ -127,22 +114,11 @@ func (s *Server) reportPeriod(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start, err := time.Parse(time.RFC3339, reqBody.StartDate)
-	if err != nil {
-		handlerutil.BadRequest(w, "Invalid start date")
-		return
-	}
-
-	end, err := time.Parse(time.RFC3339, reqBody.EndDate)
-	if err != nil {
-		handlerutil.BadRequest(w, "Invalid end date")
-		return
-	}
 
 	res, err := s.tm.ReportPeriod(
 		r.Context(),
-		start,
-		end,
+		reqBody.StartDate,
+		reqBody.EndDate,
 		reqBody.U100,
 	)
 

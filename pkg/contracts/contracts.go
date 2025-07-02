@@ -1,5 +1,9 @@
 package contracts
 
+import (
+	"time"
+)
+
 type Transaction struct {
 	Id          string  `json:"id"`
 	Date        string  `json:"date"`
@@ -8,13 +12,13 @@ type Transaction struct {
 	Category    *string `json:"category,omitEmpty"`
 }
 type TimelineRequest struct {
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
+	StartDate time.Time `json:"startDate"`
+	EndDate   time.Time `json:"endDate"`
 }
 type ReportRequest struct {
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
-	U100      bool   `json:"u100"`
+	StartDate time.Time `json:"startDate"`
+	EndDate   time.Time `json:"endDate"`
+	U100      bool      `json:"u100"`
 }
 type TimelineResponseItem struct {
 	Month   string  `json:"month"`

@@ -7,13 +7,13 @@ prod Transaction {
 }
 
 prod TimelineRequest {
-  startDate Str,
-  endDate Str,
+  startDate Date,
+  endDate Date,
 }
 
 prod ReportRequest {
-  startDate Str,
-  endDate Str,
+  startDate Date,
+  endDate Date,
   u100 Bool,
 }
 
