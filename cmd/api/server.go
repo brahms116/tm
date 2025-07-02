@@ -36,7 +36,7 @@ func (s *Server) Start() error {
 	fserver := http.FileServer(httpFs)
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
-	mux.Handle("POST /import", s.applyMiddlewares(http.HandlerFunc(s.importIngCsv)))
+	mux.Handle("POST /import", s.applyMiddlewares(http.HandlerFunc(s.importCsv)))
 	mux.Handle("POST /is-authenticated", s.applyMiddlewares(http.HandlerFunc(s.isAuthenicated)))
 	mux.Handle("POST /report-period", s.applyMiddlewares(http.HandlerFunc(s.reportPeriod)))
 	mux.Handle("POST /report-timeline", s.applyMiddlewares(http.HandlerFunc(s.reportTimeline)))
@@ -83,22 +83,6 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 func (s *Server) isAuthenicated(w http.ResponseWriter, r *http.Request) {
 	handlerutil.Json(w, true)
 }
-
-func (s *Server) importIngCsv(w http.ResponseWriter, r *http.Request) {
-	f, close, ok := handlerutil.ReadFile(w, r, "file")
-	if !ok {
-		return
-	}
-	defer close()
-
-	result, err := s.tm.ImportCsv(r.Context(), f)
-	if err != nil {
-		handlerutil.BadRequest(w, err.Error())
-		return
-	}
-	handlerutil.Json(w, result)
-}
-
 func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow all origins

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"tm/pkg/contracts"
 	"tm/pkg/handlerutil"
@@ -20,7 +19,6 @@ func (s *Server) reportTimeline(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		log.Println(err.Error())
     s.handleErr(err, w)
 		return
 	}
